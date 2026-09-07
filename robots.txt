@@ -1,0 +1,4 @@
+# Staging / client-review build — keep it out of search results.
+# DELETE this file when the site goes live on the real domain.
+User-agent: *
+Disallow: /
