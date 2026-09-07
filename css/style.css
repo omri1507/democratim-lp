@@ -1,0 +1,679 @@
+/* ===================================================================
+   Democratim — display LP.  1440px design canvas, pixel-matched.
+   Mandatory-font copy is rendered as outlined SVG (no web licence).
+   =================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root{
+  --navy:#1d316f;
+  --blue:#7cd3f8;
+  --red:#ef1a22;
+  --white:#fff;
+  /* brand shear + squash used on almost every block.
+     matches Figma's matrix(1,0,0.156434,0.987688) — a forward lean */
+  --skew: matrix(1, 0, 0.156434, 0.987688, 0, 0);
+  --skew16: matrix(1, 0, 0.28675, 0.96, 0, 0);
+  /* exact inverse of --skew. The Mandatory-font SVGs are exported from Figma
+     with the shear already baked into their geometry; applying this to the
+     <img> cancels the wrapper's --skew on the raster (so it is never sampled
+     through a transform → stays crisp) while the coloured box still shears. */
+  --unskew: matrix(1, 0, -0.158385, 1.012464, 0, 0);
+  --rot: 1.5deg;
+}
+
+html,body{ margin:0; padding:0; }
+body{
+  background:var(--white);
+  font-family:'Heebo', system-ui, sans-serif;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{ display:block; max-width:none; }
+a{ color:inherit; }
+
+#root{
+  position:relative;
+  width:100%;
+  margin:0 auto;
+  overflow-x:clip;          /* full-bleed slabs never cause a h-scrollbar */
+}
+
+/* full-bleed bands; centred 1440 content well */
+.band{ position:relative; width:100%; }
+.band > .inner{
+  position:relative;
+  width:1440px;
+  margin:0 auto;
+  height:100%;
+}
+
+.skew{ transform:var(--skew); }
+
+/* pre-sheared Mandatory-font SVGs: undo the wrapper shear on the raster only
+   (box stays a parallelogram, glyphs keep Figma's exact baked slant, crisp) */
+.hero-title img,
+.hero-sub img,
+.hero-btn .btn__label,
+.duknow__fact img,
+.duknow__cta .btn__label,
+.count__tag img,
+.count__note,
+.bar__pct svg,
+.form__head img,
+.form__submit .btn__label,
+.mq-text,
+.mq-star{        /* the stars are drawn upright in the design — not sheared */
+  transform:var(--unskew);
+  transform-origin:center;
+}
+
+/* ---------- generic coloured label boxes ---------- */
+.box{ display:inline-flex; align-items:center; justify-content:center; }
+.box--navy{ background:var(--navy); }
+.box--white{ background:var(--white); }
+.box--lightblue{ background:var(--blue); }
+
+/* ---------- buttons — one shared style for להרשמה / בואו להשפיע / שליחה ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:9px; text-decoration:none; border:0; cursor:pointer;
+  font:inherit; direction:ltr;          /* chevron left, label right */
+}
+.btn--red{
+  background:var(--red);
+  padding:14px 22px; min-width:180px;
+  box-shadow:4px 4px 0 0 var(--white);  /* same hard white shadow on all three */
+  /* `translate` (not `transform`) so it composes with the brand shear */
+  transition:translate .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+.btn--red:hover{                         /* brighter red + press into the shadow */
+  background:#ff3b30;
+  translate:2px 2px;
+  box-shadow:2px 2px 0 0 var(--white);
+}
+.btn--red:active{                        /* fully pressed */
+  background:#ff3b30;
+  translate:4px 4px;
+  box-shadow:0 0 0 0 var(--white);
+}
+.btn:focus-visible{
+  outline:3px solid rgba(255,255,255,.7); outline-offset:3px;
+}
+.btn__chev{ width:34.1px; height:26.3px; flex:none; }
+.btn__label{ width:auto; height:39px; } /* every label at the same cap height */
+
+/* =====================================================================
+   HERO
+   ===================================================================== */
+.band--hero{ height:728px; background:var(--navy); overflow:hidden; position:relative; z-index:4; }
+.hero-bg{
+  position:absolute; inset:0;
+  background:url("../assets/img/hero-bg.webp") center/cover no-repeat;
+  opacity:.15;
+  mix-blend-mode:luminosity;
+}
+.hero-golan{
+  position:absolute; left:155px; top:89px;
+  width:476px; height:639px;
+  object-fit:contain; object-position:bottom center;
+  z-index:2;
+}
+.hero-logo{
+  position:absolute; left:566px; top:52px;
+  width:274.96px; height:36.64px; z-index:3;
+}
+
+/* Figma 22:279 — an un-sheared 541×371.5 column, right-aligned, gap 24.
+   Boxes get explicit sizes and the SVGs sit at natural size, centred: an
+   <img>'s layout box is the SHEARED ink, which is wider than what --unskew
+   actually paints, so sizing a box by padding alone comes out too big. */
+.hero-cta{
+  position:absolute; left:732px; top:191px; width:541px;
+  display:flex; flex-direction:column; align-items:flex-end; gap:24px;
+  direction:ltr; z-index:2;
+}
+.hero-cta__stack{ display:flex; flex-direction:column; align-items:flex-end; width:541px; }
+.hero-title{ width:541px; height:204px; margin-bottom:-1px; }
+.hero-title img{ width:540px; height:163px; }
+.hero-sub{ width:466px; height:86px; }
+.hero-sub img{ width:451px; height:52px; }
+
+/* =====================================================================
+   MARQUEE
+   ===================================================================== */
+.marquee{
+  position:absolute; top:674px; left:0;
+  width:100%; height:130px; z-index:6; pointer-events:none;
+  overflow:visible;         /* the rotated band + its stripes hang outside */
+  direction:ltr;            /* seqs tile L→R so the -50% loop is seamless */
+}
+.marquee__bar{
+  position:absolute; top:21px; left:-5%; width:110%;
+  height:74px;
+  background:var(--red);
+  transform:rotate(1.5deg);   /* band drops toward the right, matching Figma */
+}
+/* Two white accent lines, 1033px each — NOT full-bleed. One runs along the
+   bar's bottom edge on the left, the other along its top edge on the right,
+   each overhanging the bar slightly. Anchored to the centre of the content
+   well so the composition holds at any viewport width. */
+.marquee__stripe{
+  position:absolute; left:50%; width:1033px; height:8px;
+  background:var(--white);
+  transform:var(--skew16);
+}
+.marquee__stripe--a{ margin-left:-787px; top:71px; }
+.marquee__stripe--b{ margin-left:-259px; top:-4px; }
+
+.marquee__clip{
+  position:absolute; inset:0; overflow:hidden;
+  display:flex; align-items:center;
+}
+.marquee__track{
+  display:flex; width:max-content;
+  will-change:transform;
+  animation:marquee 26s linear infinite;
+}
+.marquee__seq{
+  display:flex; align-items:center; gap:17px;
+  padding-right:17px;       /* keeps the rhythm across the loop seam, and keeps
+                               each seq exactly half the track so -50% is seamless */
+  transform:var(--skew);
+}
+.mq-unit{ display:flex; align-items:center; gap:17px; flex:none; }
+.mq-star{ flex:none; width:34.83px; height:45.95px; }
+.mq-text{ flex:none; width:192px; height:51px; }
+@keyframes marquee{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+
+/* =====================================================================
+   LIGHT-BLUE SECTION
+   ===================================================================== */
+/* dedicated background layer: light-blue runs the whole way down, *behind*
+   the navy slab's angled edge — no white sliver between the sections */
+.blue-bg{
+  position:absolute; left:0; width:100%;
+  top:728px; height:760px;       /* runs past the navy slab's LOWEST top edge
+                                    (y≈1390 even on a 4K viewport) so no white
+                                    can show; the slab covers the rest */
+  background:var(--blue); z-index:0;
+}
+/* z-order through the blue→navy transition:
+   0 blue field · 1 blue-section art (boy, booth, fact) · 2 navy slab
+   · 3 navy-section content (counter, form)                            */
+.band--blue{ height:464px; position:relative; z-index:1; }
+.band--blue > .inner{ overflow:visible; }
+
+/* Figma 97:902 — fact box + button, right-aligned in a 419px column, gap 20.
+   The "הידעת?" tag is gone in this revision, which shortens the column and so
+   changes where the shear lands every box: the whole column leans about ITS
+   centre, so dropping the top box moves the two survivors. left/top below are
+   solved from the rendered design, not carried over. The fact box is WIDER
+   than the column (433 vs 419) and overhangs to the left, as in the design. */
+.duknow{
+  position:absolute; left:222px; top:130px; width:419.061px;
+  display:flex; flex-direction:column; align-items:flex-end; gap:20px;
+  direction:ltr; z-index:4;
+}
+.duknow__fact{
+  width:433.337px; height:154px;
+  box-shadow:-12.4px 13.4px 0 0 var(--navy);
+}
+.duknow__fact img{ width:411px; height:129px; }
+
+/* Figma places both photos as plain rects: the volunteer's 409×544 matches
+   youngman.webp's aspect exactly, so it fills its box with no letterboxing. */
+.mid-youngman{
+  position:absolute; left:705px; top:72px;
+  width:409px; height:544px;
+  object-fit:contain; object-position:top center;
+  z-index:2;
+}
+/* box sized to booth.webp's own 820:1580 aspect, so `contain` fills it exactly
+   and left/top/width/height ARE the painted rect — no letterbox offset to
+   reason about (the previous 364-wide box padded it ~63px and pushed the booth
+   right of where the design puts it). */
+.mid-booth{
+  position:absolute; left:1080px; top:80px;
+  width:240px; height:462px;
+  transform:rotate(2.41deg); z-index:1;
+}
+.mid-booth img{ width:100%; height:100%; object-fit:contain; }
+
+/* =====================================================================
+   NAVY BAND (angled slab behind the counter + form)
+   ===================================================================== */
+.navy{
+  position:absolute; left:0; width:100%;
+  top:1248px; height:1005px;     /* the shortened midsection pulls the whole
+                                    navy band up 408px; its stripes ride with
+                                    it, keeping their offsets from the slab.
+                                    Height ends exactly on the 2207 artboard —
+                                    it is what sets the page's scrollHeight. */
+  z-index:2;                 /* above the blue section's art — the slab crops
+                                the volunteer's legs, as it does in Figma */
+  overflow:hidden; pointer-events:none;
+}
+.navy__slab{
+  position:absolute; left:-6%; top:32px; width:112%; height:1200px;
+  background:var(--navy);
+  transform:rotate(1.4deg); transform-origin:top left;
+}
+/* Anchored to the centre of the 1440 content well, not to the viewport edge,
+   so the gap between a stripe's inner end and the central text stays fixed at
+   every width. They run off-screen outward on wider viewports. */
+.navy__stripe{
+  position:absolute; left:50%; height:12px; width:1035px; background:var(--white);
+  transform:rotate(1.4deg) var(--skew16);
+}
+.navy__stripe--a{ margin-left:-1532px; top:26px;  margin-top:-6px; }
+.navy__stripe--b{ margin-left:530px;   top:78px;  margin-top:-6px; }
+
+/* navy band ends ~82px below the footer logo — no artboard whitespace after it */
+.band--navy{ position:relative; z-index:3; height:1133px; margin-top:-72px; }
+.band--navy > .inner{ overflow:visible; }
+
+/* ---------- progress bar ----------
+   Replaces the old sign-up counter. The tag + white box are ONE sheared plane
+   (.count carries the shear), so the two boxes share an edge exactly as they
+   do in Figma. Box geometry is Figma's own un-sheared rect (797×192, read off
+   the export's <rect>, not its sheared bbox). */
+.count{
+  position:absolute; top:24px; left:50%;
+  transform:translateX(calc(-50% + 7px)) var(--skew);
+  display:flex; flex-direction:column; align-items:center; z-index:4;
+}
+.count__tag{
+  width:264px; height:82px;
+  position:relative; z-index:1;
+  /* the shared shear already lands the tag left of the box centre, as in Figma */
+}
+.count__tag img{ width:200px; height:47px; }
+.count__num{
+  width:797px; height:192px;
+  flex-direction:column; align-items:stretch; justify-content:center;
+  gap:18px; padding:16px 20px;
+  box-shadow:10px 9px 0 0 var(--navy);
+}
+
+/* The track fills from the RIGHT — it's an RTL page, so progress grows the way
+   the language reads. --pct is set on .count (inline in the markup, so the bar
+   is already the right width with JS off) and animated by js/main.js. */
+.bar{
+  position:relative;
+  height:88px; padding:5px;
+  background:#a1a3a7; overflow:hidden;
+  /* direction:ltr + flex-end pins the fill to the RIGHT edge. The page is
+     dir="rtl", where flex-end resolves to the LEFT — which put the fill on
+     the wrong side. Stating the direction is what makes this unambiguous. */
+  display:flex; align-items:center; justify-content:flex-end; direction:ltr;
+}
+.bar__fill{
+  height:100%; background:var(--red);
+  width:calc(var(--pct, 0) * 1%);
+}
+/* Centred in the TRACK, not in the fill, so it stays legible at any value —
+   the hard red offset behind the white glyphs is what carries it across the
+   grey/red edge. Centring uses `translate` so it composes with --unskew. */
+.bar__pct{
+  position:absolute; left:50%; top:12px;
+  translate:-50% 0;
+  font:700 64px/0.8 'Heebo', sans-serif; color:var(--white);  /* no-JS fallback */
+}
+.bar__pct svg{ display:block; overflow:visible; }
+.count__note{ width:100%; height:auto; }
+
+/* ---------- form ---------- */
+.form{
+  position:absolute; top:358px; left:50%; transform:translateX(-50%);
+  width:1042px;
+  display:flex; flex-direction:column; align-items:center; gap:17px;
+  z-index:4;
+}
+.form__head{ padding:13px 46px; transform-origin:center; }
+.form__head img{ width:372px; height:auto; }
+
+.form__row{ display:flex; gap:27px; width:938px; }
+.form__row--2 .field{ flex:1; }
+.form__row .field{ flex:1; }
+
+.field{
+  display:flex; flex-direction:column; align-items:flex-start; gap:9px;
+  padding:9px; transform-origin:center;
+}
+.field__label{
+  font-weight:500; font-size:24.3px; line-height:.78; color:var(--white);
+  white-space:nowrap;
+}
+.field input{
+  width:100%; height:60.31px; border:0; border-radius:0; background:var(--white);
+  box-shadow:3.6px 3.6px 3.6px rgba(0,0,0,.25);
+  padding:0 14px; font-family:'Heebo',sans-serif; font-size:20px; color:var(--navy);
+  outline:none;
+}
+.field input:focus{ box-shadow:0 0 0 3px rgba(255,255,255,.55); }
+
+.form__consent{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  width:938px; transform-origin:center;
+}
+.form__consent-text{ font-weight:500; font-size:21.6px; line-height:.78; color:var(--white); }
+.form__consent-text a{ text-decoration:underline; text-underline-offset:2px; }
+.form__consent-text b{ color:var(--red); font-weight:700; }
+.checkbox{
+  width:24.3px; height:24.3px; flex:none; background:var(--white);
+  border-radius:5.4px; transform:skewX(-8.89deg) scaleY(1.01); cursor:pointer;
+  position:relative;
+}
+.checkbox.is-checked::after{
+  content:""; position:absolute; left:7px; top:2px;
+  width:7px; height:14px; border:solid var(--navy); border-width:0 3px 3px 0;
+  transform:rotate(45deg);
+}
+
+.form__submit{ margin-top:6px; transform-origin:center; }
+.form__done{ color:#fff; font-weight:700; font-size:20px; margin:6px 0 0; }
+
+.navy-logo{
+  position:absolute; top:952px; left:50%; transform:translateX(-50%);
+  width:274.96px; height:36.64px; z-index:4;
+}
+/* Not in the Figma artboard — an addition, so the navy band and its slab both
+   grew to make room (see .navy / .band--navy heights). */
+.social{
+  position:absolute; top:1003px; left:50%; transform:translateX(-50%);
+  display:flex; gap:8px; align-items:center;
+  margin:0; padding:0; list-style:none; z-index:4;
+}
+/* padding, not margin, so the hit area is bigger than the 26px glyph — `gap`
+   is dropped to match so the icons still sit 20px apart visually */
+.social a{
+  display:block; padding:6px; color:var(--white);
+  transition:color .15s ease, translate .15s ease;
+}
+.social svg{ display:block; width:26px; height:26px; fill:currentColor; }
+.social a:hover{ color:var(--blue); translate:0 -2px; }
+.social a:focus-visible{
+  outline:3px solid rgba(255,255,255,.7); outline-offset:4px;
+}
+
+.footnote{
+  position:absolute; top:1056px; left:50%; transform:translateX(-50%);
+  width:100%; text-align:center; z-index:4;
+  font-size:13px; line-height:1.7; color:rgba(255,255,255,.55);
+}
+.footnote p{ margin:0; }
+.footnote a{ color:rgba(255,255,255,.8); text-decoration:underline; text-underline-offset:2px; }
+.footnote a:hover{ color:#fff; }
+
+/* =====================================================================
+   Scale-down wrapper state (JS sets the inline transform / position)
+   ===================================================================== */
+#root.is-scaled{ position:absolute; top:0; }
+
+/* parallax — uses the independent `translate` property so it composes
+   with each element's own `transform` (skew / rotate) */
+.parallax{ translate:0 var(--px, 0); }
+
+/* reveal-on-scroll — `translate`-based so it never clobbers `transform`.
+   Only armed when JS is running (html.js), so a JS/IO failure can't leave
+   content stuck invisible. */
+.js .reveal{ opacity:0; translate:0 22px; }
+.js .reveal.in{ opacity:1; translate:0 0; transition:opacity .6s ease, translate .6s ease; }
+.js .reveal.d1{ transition-delay:.06s; }
+.js .reveal.d2{ transition-delay:.12s; }
+.js .reveal.d3{ transition-delay:.18s; }
+
+@media (prefers-reduced-motion:reduce){
+  .js .reveal{ opacity:1; translate:0 0; }
+  .parallax{ translate:0 0 !important; }
+  .marquee__track{ animation:none; }
+  .btn--red{ transition:background-color .12s ease; }
+  .btn--red:hover, .btn--red:active{ translate:0 0; box-shadow:4px 4px 0 0 var(--white); }
+  .social a{ transition:color .15s ease; }
+  .social a:hover{ translate:0 0; }
+}
+
+/* =====================================================================
+   MOBILE  ( < 900px )
+   The desktop 1440 canvas is a fixed absolutely-positioned layout; below
+   900px everything reflows into a single centred column. The brand shear
+   is kept on the individual label boxes (their SVGs are baked to the 9°
+   angle) but moved OFF the tall column wrappers, and the rotations on the
+   marquee / navy edge are eased.
+   ===================================================================== */
+@media (max-width:899px){
+  /* --gut is THE page margin: every block's visual edge — sheared corners
+     included — is meant to land on it.
+     A sheared group's bbox is wider than its layout box by ~0.078 x the
+     group's HEIGHT on each side. That overhang is a near-constant number of
+     px (heights barely move with viewport width), so each group is inset with
+     `calc(100% - Npx)`, not a percentage — a percentage inset would give a
+     different visual margin at every width.
+     Each N below is set to that block's MEASURED total overhang, so its bbox
+     comes out exactly the content-box width and the visual margin is --gut
+     itself — change --gut and every block follows. Where a group's widest
+     members sit at different heights (the הידעת pair, the counter) the lean
+     is off-centre, so a small margin-right recentres the bbox. */
+  :root{ --gut:24px; }
+
+  #root{ width:100%; }
+  #root.is-scaled{ position:static; transform:none; left:auto; width:100%; }
+  /* full-bleed section backgrounds, but the content column is capped so the
+     type doesn't balloon on the wide end of the range (600–899px) */
+  .band > .inner{
+    width:100%; max-width:500px; height:auto; margin:0 auto; padding:0 var(--gut);
+  }
+  .parallax{ translate:0 0 !important; }
+
+  /* ---------------- HERO ---------------- */
+  /* bottom / top padding here is the marquee's breathing room: the bar still
+     butts both sections (no white seam) — it's the CONTENT that's held off it */
+  .band--hero{ height:auto; padding:30px 0 38px; }
+  .band--hero > .inner{
+    display:flex; flex-direction:column; align-items:center; gap:18px;
+  }
+  .hero-logo{ position:static; order:1; width:200px; height:auto; }
+  .hero-golan{
+    position:static; order:2; width:53%; height:auto; margin-bottom:-26px;
+  }
+  /* Shear the whole CTA as ONE unit (as on desktop), not box-by-box: sheared
+     separately, each box leans about its own centre and they stack dead in
+     line; sheared together, the title slides left and the button right, so
+     the trio reads as a single sheared block.
+     ~215px tall → ~17px of overhang each side (title's top-left, button's
+     bottom-right), so inset 34px to land both on --gut. */
+  .hero-cta{
+    position:static; order:3; left:auto; top:auto;
+    width:calc(100% - 36px); align-self:center;
+    transform:var(--skew); transform-origin:center;
+    align-items:flex-end; gap:14px;
+  }
+  .hero-cta__stack{ width:100%; align-items:flex-end; }
+  .hero-title,
+  .hero-sub{ height:auto; transform:none; }
+  .hero-title{ width:100%; padding:13px 14px; margin-bottom:0; }
+  .hero-title img{ width:100%; height:auto; }
+  .hero-sub{ width:87%; padding:10px 14px; }
+  .hero-sub img{ width:100%; height:auto; }
+  .hero-btn{ align-self:flex-end; transform:none; }
+
+  /* buttons: trimmed so the longest label ("בואו להשפיע") clears the page
+     edges inside the shrunk columns */
+  .btn--red{ min-width:0; padding:12px 18px; gap:7px; }
+  .btn__chev{ width:26px; height:auto; }
+  .btn__label{ height:30px; }
+
+  /* ---------------- MARQUEE ---------------- */
+  /* The bar IS the divider between the navy hero and the light-blue section:
+     no white gap above or below. The container carries navy-over-blue split
+     at its midline so the 1° tilt's corner slivers fill with the adjacent
+     section colour and the seam is invisible. */
+  /* stays POSITIONED (in flow, but relative) so z-index still applies — as
+     static it painted under .band--hero (z4) and .band--blue (z1), which
+     covered the stripe overhang and made the lines look cropped */
+  .marquee{
+    position:relative; top:0; left:0;   /* reset the desktop top:674px — inert
+                                           while static, live once positioned */
+    z-index:7; height:auto; margin:0; overflow:visible;
+    background:linear-gradient(to bottom, var(--navy) 50%, var(--blue) 50%);
+  }
+  .marquee__bar{
+    position:relative; top:0; left:-5%; width:110%; height:60px;
+    transform:rotate(1deg);
+  }
+  .marquee__clip{ position:absolute; inset:0; }
+  /* Like desktop: two ~two-thirds-width accent lines that ride the bar's
+     rotation (no separate shear) — one straddling the top edge pushed to the
+     right, one straddling the bottom edge pushed to the left, each poking a
+     few px past the bar onto the section above / below, and clear of the
+     centred text. */
+  .marquee__stripe{
+    width:66%; height:6px; margin:0; transform:none;
+  }
+  .marquee__stripe--a{ left:-2%; right:auto; top:auto; bottom:-4px; }
+  .marquee__stripe--b{ left:auto; right:-2%; top:-4px; bottom:auto; }
+  .marquee__seq{ gap:16px; padding-right:16px; }
+  .mq-unit{ gap:16px; }
+  .mq-star{ width:20px; height:auto; }
+  .mq-text{ width:138px; height:auto; }
+
+  /* ---------------- LIGHT-BLUE SECTION ---------------- */
+  .blue-bg{ display:none; }
+  /* Bottom padding is deep because the progress block's tag is pulled up into
+     it — see the .count rule below; what's left over is the gap between the
+     photo and that tag. */
+  .band--blue{ background:var(--blue); height:auto; padding:38px 0 114px; }
+  .band--blue > .inner{
+    display:flex; flex-direction:column; align-items:center; gap:24px;
+  }
+  .mid-booth{ display:none; }
+  /* Below the text block, and cropped by the NAVY rather than by CSS — same as
+     desktop, where the slab cuts his legs. A CSS crop left a hard horizontal
+     edge sitting in the middle of the blue; running him under the section edge
+     hides it.
+     He keeps his natural aspect and overflows the band's content box by the
+     margin below, so the visible height is (reserved height + padding-bottom -
+     the wedge's 26px reach) — i.e. ~240px, with the rest tucked under the navy.
+     He passes behind the "עד כה נרשמו" tag on the way down, exactly as the
+     tag and progress box overlap him on desktop. */
+  .mid-youngman{
+    position:static; order:2;
+    /* clamped, not a plain %, because the tag that crosses him doesn't shrink
+       with the column: at a straight 62% he lost ~50px of height on a 320px
+       screen and the tag swallowed the ballot */
+    width:clamp(200px, 66%, 225px); height:auto;
+    margin:0 -6px -98px 0;
+  }
+
+  /* shear the pair as ONE unit (as on desktop), not box-by-box — sheared
+     together the fact box and button stagger and read as one sheared block.
+     Dropping the "הידעת?" tag barely changed the inset: the overhang is set
+     by the two boxes that remain (~31px total), and the button, at the very
+     bottom, still leans further right than the fact box leans left — hence
+     the split inset via margin-right rather than a centred one. */
+  .duknow{
+    position:static; left:auto; top:auto; order:1;
+    width:calc(100% - 31px); max-width:none; margin-right:2px;
+    transform:var(--skew); transform-origin:center;
+    align-items:flex-end; gap:16px;
+  }
+  .duknow__fact{
+    width:100%; height:auto; padding:22px 18px;
+    box-shadow:-7px 8px 0 0 var(--navy); transform:none;
+  }
+  .duknow__fact img{ width:100%; height:auto; }
+  .duknow__cta{ align-self:flex-end; transform:none; }
+
+  /* ---------------- NAVY SECTION ---------------- */
+  .navy{ display:none; }                  /* replaced by the ::before wedge */
+  .band--navy{
+    position:relative; z-index:1; height:auto; margin-top:0;
+    background:var(--navy); padding:0 0 40px;   /* .count's negative margin
+                                                   supplies the top space */
+  }
+  .band--navy::before{                    /* eased diagonal navy edge */
+    content:""; position:absolute; left:-9%; right:-9%; top:-26px; height:64px;
+    background:var(--navy); transform:rotate(1.4deg);
+  }
+  .band--navy > .inner{
+    display:flex; flex-direction:column; align-items:center; gap:28px;
+  }
+
+  /* Counter — keeps the DESKTOP composition: a wide short white box with the
+     label on the LEFT and the number on the RIGHT (desktop's direction:ltr
+     does the ordering), tag overlapping above. Stacking them made a tall
+     awkward block that read nothing like the design. Widths are % of the
+     box's content so the pair scales with the column; the number keeps a
+     bigger share than on desktop so it still carries at phone size.
+     ~130px tall → ~10px overhang each side. */
+  /* Pulled up so the navy "עד כה נרשמו" tag clears the section edge and reads
+     against the LIGHT BLUE, with the white box straddling the seam — the same
+     relationship it has on desktop. Sitting inside the band it was navy-on-navy
+     and only the white text showed.
+     position:relative + z-index is required, not cosmetic: the ::before wedge
+     is absolutely positioned, so it paints above static content and would
+     cover the tag once the tag moves up into it. */
+  .count{
+    position:relative; z-index:2; left:auto; top:auto;
+    width:calc(100% - 17px); margin-right:5px;   /* box sits low in the group,
+                                                    so it leans right — recentre */
+    margin-top:-96px;
+    transform:var(--skew); transform-origin:center; align-items:center;
+  }
+  .count__tag{ width:auto; height:auto; padding:6px 24px; }
+  .count__tag img{ width:150px; height:auto; }
+  .count__num{
+    width:100%; height:auto; gap:10px;
+    padding:12px 12px; box-shadow:6px 5px 0 0 var(--navy);
+  }
+  .bar{ height:52px; padding:4px; }
+  .bar__pct{ top:8px; font-size:38px; }   /* centres the ink in the 52px track */
+  .bar__pct svg{ width:auto; height:40px; }
+
+  /* form — every field on its own row. Each .field carries its own shear
+     (~95px tall → ~7px per side), so the form is inset 15px and the fields
+     run the full width inside it. */
+  .form{
+    position:static; left:auto; top:auto; transform:none;
+    width:calc(100% - 14px); max-width:none; gap:16px;
+  }
+  .form__head{ padding:12px 32px; }
+  .form__head img{ width:220px; height:auto; }
+  .form__row,
+  .form__row--2{ flex-direction:column; width:100%; gap:16px; }
+  .field{ width:100%; padding:7px 0; }
+  .field__label{ font-size:16px; }
+  .field input{ height:52px; font-size:16px; }
+  /* nowrap keeps the checkbox beside the text; the text wraps inside instead
+     of the checkbox breaking onto a line of its own */
+  .form__consent{
+    width:calc(100% + 10px);   /* short row → little overhang; widened so its
+                                  edges match the much taller fields' */
+    flex-wrap:nowrap; align-items:center;
+    justify-content:flex-start; gap:9px; padding:0;
+  }
+  .form__consent-text{ font-size:13.5px; line-height:1.45; }
+  .form__submit{ align-self:center; margin-top:4px; }
+
+  .navy-logo{
+    position:static; left:auto; top:auto; transform:none;
+    width:196px; height:auto; margin:4px auto 0;
+  }
+  .social{
+    position:static; left:auto; top:auto; transform:none;
+    justify-content:center; gap:2px; margin-top:-6px;
+  }
+  .social a{ padding:10px; }        /* 44px touch target around a 24px glyph */
+  .social svg{ width:24px; height:24px; }
+  .footnote{
+    position:static; left:auto; top:auto; transform:none;
+    margin-top:-4px; font-size:12px; padding:0;   /* .inner already gutters it */
+  }
+}
+
+/* very small phones — trim the gutter a little, but keep the blocks' own
+   insets: they're driven by block height, which barely changes down here */
+@media (max-width:380px){
+  :root{ --gut:18px; }
+}
