@@ -9,6 +9,14 @@ a progress bar. The artboard is 1440 × 2207.
 Plain HTML/CSS/JS — no build step. Open `index.html` (it's already in the
 XAMPP web root) or serve the folder with any static server.
 
+**Live client-review build:** <https://omri1507.github.io/democratim-lp/>
+(GitHub Pages, served from `main`). Pushing to `main` redeploys it.
+
+The staging build carries a `noindex, nofollow` meta and a `robots.txt` that
+disallows everything, because the repo behind Pages has to be public on a free
+plan. **Delete both before the site goes live on the real domain** — they're
+marked with comments in place.
+
 ## Layout model
 
 * The design canvas is **1440 px**. On tablet/desktop all content lives in
