@@ -44,6 +44,31 @@
   mqMobile.addEventListener('change', fit);
   fit();
 
+  /* -------------------------------------------------- hero portrait rotator
+     Cross-fades the five portraits endlessly. Purely a CSS opacity swap — the
+     images are stacked in one box, so nothing reflows as it runs. Held on the
+     first frame under prefers-reduced-motion, and paused while the tab is
+     hidden so it doesn't burn a timer in the background.                     */
+  var people = Array.prototype.slice.call(document.querySelectorAll('.hero-person'));
+  if (people.length > 1 && !reduce) {
+    var HOLD = 4000, personIx = 0, personTimer = null;
+    function nextPerson() {
+      people[personIx].classList.remove('is-on');
+      personIx = (personIx + 1) % people.length;
+      people[personIx].classList.add('is-on');
+    }
+    function startPeople() {
+      if (personTimer === null) personTimer = setInterval(nextPerson, HOLD);
+    }
+    function stopPeople() {
+      if (personTimer !== null) { clearInterval(personTimer); personTimer = null; }
+    }
+    document.addEventListener('visibilitychange', function () {
+      document.hidden ? stopPeople() : startPeople();
+    });
+    startPeople();
+  }
+
   /* -------------------------------------------------- marquee fill */
   var UNIT = '<span class="mq-unit">' +
     '<img class="mq-text" src="assets/svg/marquee-text.svg" alt="מביאים כל קול">' +

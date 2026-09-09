@@ -55,6 +55,7 @@ a{ color:inherit; }
 .hero-title img,
 .hero-sub img,
 .hero-btn .btn__label,
+.duknow__tag img,
 .duknow__fact img,
 .duknow__cta .btn__label,
 .count__tag img,
@@ -113,12 +114,23 @@ a{ color:inherit; }
   opacity:.15;
   mix-blend-mode:luminosity;
 }
-.hero-golan{
+/* Five portraits stacked in one box, cross-faded by js/main.js. They vary in
+   aspect (0.617-0.682) and all sit narrower than the box, so `contain` +
+   a bottom anchor lines every one of them up on the same floor and centres
+   them, rather than making them jump around as the rotation runs. */
+.hero-people{
   position:absolute; left:155px; top:89px;
   width:476px; height:639px;
-  object-fit:contain; object-position:bottom center;
+  aspect-ratio:476 / 639;      /* mobile sets width only and takes height here */
   z-index:2;
 }
+.hero-person{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:contain; object-position:bottom center;
+  opacity:0; transition:opacity .9s ease;
+}
+.hero-person.is-on{ opacity:1; }
 .hero-logo{
   position:absolute; left:566px; top:52px;
   width:274.96px; height:36.64px; z-index:3;
@@ -204,17 +216,19 @@ a{ color:inherit; }
 .band--blue{ height:464px; position:relative; z-index:1; }
 .band--blue > .inner{ overflow:visible; }
 
-/* Figma 97:902 — fact box + button, right-aligned in a 419px column, gap 20.
-   The "הידעת?" tag is gone in this revision, which shortens the column and so
-   changes where the shear lands every box: the whole column leans about ITS
-   centre, so dropping the top box moves the two survivors. left/top below are
-   solved from the rendered design, not carried over. The fact box is WIDER
-   than the column (433 vs 419) and overhangs to the left, as in the design. */
+/* Tag + fact box + button, right-aligned in a 419px column, gap 20.
+   Adding the tag back lengthens the sheared column, and the column leans about
+   ITS centre — so every box below it moves too. left/top are re-solved for the
+   3-box column (they were 222/130 for the 2-box one), not carried over. The
+   fact box is WIDER than the column (433 vs 419) and overhangs left, as in the
+   design. */
 .duknow{
-  position:absolute; left:222px; top:130px; width:419.061px;
+  position:absolute; left:216px; top:56px; width:419.061px;
   display:flex; flex-direction:column; align-items:flex-end; gap:20px;
   direction:ltr; z-index:4;
 }
+.duknow__tag{ width:220.794px; height:58.057px; }
+.duknow__tag img{ width:176px; height:35px; }
 .duknow__fact{
   width:433.337px; height:154px;
   box-shadow:-12.4px 13.4px 0 0 var(--navy);
@@ -474,8 +488,14 @@ a{ color:inherit; }
     display:flex; flex-direction:column; align-items:center; gap:18px;
   }
   .hero-logo{ position:static; order:1; width:200px; height:auto; }
-  .hero-golan{
-    position:static; order:2; width:53%; height:auto; margin-bottom:-26px;
+  /* relative, NOT static: the portraits inside are absolutely positioned, so
+     going static hands them .band--hero as their containing block and they
+     render at its width instead of the box's */
+  .hero-people{
+    position:relative; left:auto; top:auto;   /* reset the desktop 155/89 —
+                                                 inert while static, live once
+                                                 positioned again */
+    order:2; width:53%; height:auto; margin-bottom:-26px;
   }
   /* Shear the whole CTA as ONE unit (as on desktop), not box-by-box: sheared
      separately, each box leans about its own centre and they stack dead in
@@ -574,10 +594,14 @@ a{ color:inherit; }
      the split inset via margin-right rather than a centred one. */
   .duknow{
     position:static; left:auto; top:auto; order:1;
-    width:calc(100% - 31px); max-width:none; margin-right:2px;
+    width:calc(100% - 31px); max-width:none; margin-right:8px;
     transform:var(--skew); transform-origin:center;
-    align-items:flex-end; gap:16px;
+    align-items:flex-end; gap:14px;
   }
+  .duknow__tag{
+    width:auto; height:auto; padding:6px 22px; transform:none;
+  }
+  .duknow__tag img{ width:132px; height:auto; }
   .duknow__fact{
     width:100%; height:auto; padding:22px 18px;
     box-shadow:-7px 8px 0 0 var(--navy); transform:none;

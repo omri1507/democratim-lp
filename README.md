@@ -114,6 +114,24 @@ Where a group's widest members sit at different heights the lean is off-centre
 progress bar's white box sits below its tag — so those two carry a small
 `margin-right` to recentre the bbox.
 
+## The hero portrait rotator
+
+Five portraits (`assets/img/persons/`) cross-fade endlessly in the hero —
+yair → naama → gilad → efrat → yaya, 4s each, 0.9s fade. They're stacked in one
+box and swapped by toggling `.is-on`, so it's a pure opacity change and nothing
+reflows. Held on the first frame under `prefers-reduced-motion`, and the timer
+is cleared while the tab is hidden.
+
+The five vary in aspect (0.617–0.682) and all sit narrower than the box, so
+`object-fit: contain` with a **bottom** anchor puts every one of them on the
+same floor — otherwise they'd jump around as the rotation runs. They render at
+the same height the single Golan portrait did; only the width differs, which is
+just the shot being narrower.
+
+Sources arrive as PNGs and are **converted to WebP** — 7.4MB → 348KB for all
+five, which matters when the hero preloads every one. The PNGs are gitignored;
+regenerate with PIL at `quality=82, method=6`.
+
 ## The "Mandatory" typeface
 
 Democratim's display face **Mandatory** has no web licence, so **every piece of

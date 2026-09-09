@@ -19,7 +19,17 @@
   <section class="band band--hero">
     <div class="hero-bg" aria-hidden="true"></div>
     <div class="inner">
-      <img class="hero-golan" src="assets/img/golan.webp" alt="יאיר גולן">
+      <!-- Cross-fades through the five in order. Only the first is eager —
+           the rest are small enough (~350KB for all five) to arrive well
+           before their turn, which is 4s away. NOTE: alt text below carries
+           first names only; fill in the surnames. -->
+      <div class="hero-people">
+        <img class="hero-person is-on" src="assets/img/persons/yair.webp"  alt="יאיר גולן" fetchpriority="high">
+        <img class="hero-person"       src="assets/img/persons/naama.webp" alt="נעמה">
+        <img class="hero-person"       src="assets/img/persons/gilad.webp" alt="גלעד">
+        <img class="hero-person"       src="assets/img/persons/efrat.webp" alt="אפרת">
+        <img class="hero-person"       src="assets/img/persons/yaya.webp"  alt="יאיא">
+      </div>
       <img class="hero-logo" src="assets/svg/logo.svg" alt="הדמוקרטים בראשות יאיר גולן">
 
       <!-- one shared shear on the column, so the stack and the button sit on
@@ -68,7 +78,10 @@
       </div>
 
       <div class="duknow skew parallax" data-depth="-0.03">
-        <div class="box box--white duknow__fact reveal">
+        <div class="box box--navy duknow__tag reveal">
+          <img src="assets/svg/hayadata.svg" alt="הידעת?">
+        </div>
+        <div class="box box--white duknow__fact reveal d1">
           <img src="assets/svg/fact.svg" alt="5-6% מהבוחרים מחליטים למי להצביע מול הקלפי עצמה">
         </div>
         <a href="#join" class="btn btn--red duknow__cta">
