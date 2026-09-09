@@ -230,7 +230,7 @@ a{ color:inherit; }
    fact box is WIDER than the column (433 vs 419) and overhangs left, as in the
    design. */
 .duknow{
-  position:absolute; left:216px; top:56px; width:419.061px;
+  position:absolute; left:216px; top:76px; width:419.061px;
   display:flex; flex-direction:column; align-items:flex-end; gap:20px;
   direction:ltr; z-index:4;
 }
@@ -311,7 +311,8 @@ a{ color:inherit; }
 }
 .count__tag img{ width:200px; height:47px; }
 .count__num{
-  width:797px; height:192px;
+  width:797px; height:auto;     /* was the design's fixed 192 — the label now
+                                   fills the width and is taller than that box */
   flex-direction:column; align-items:stretch; justify-content:center;
   gap:18px; padding:16px 20px;
   box-shadow:10px 9px 0 0 var(--navy);
@@ -342,12 +343,11 @@ a{ color:inherit; }
   font:700 64px/0.8 'Heebo', sans-serif; color:var(--white);  /* no-JS fallback */
 }
 .bar__pct svg{ display:block; overflow:visible; }
-/* Width is the ratio of this line's natural ink (534.95) to the line the
-   layout was built around (760), so the GLYPHS come out the same size they did
-   before the copy changed — at any container width. A plain width:100% would
-   stretch the shorter line up to fill the box and set it far too large.
-   Regenerate the SVG with tools/build-text.py and update this ratio. */
-.count__note{ width:70.4%; height:auto; }
+/* Set to fill the box, so it lines up with the bar above it. That scales the
+   line UP (~1.4x past the 68px the design set) — which is the point, but it
+   means the box can no longer be the design's fixed 192px or the text spills
+   out of it, hence height:auto on .count__num. */
+.count__note{ width:100%; height:auto; }
 
 /* ---------- form ---------- */
 .form{

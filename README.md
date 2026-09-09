@@ -159,11 +159,14 @@ compares the ink box — the fitted size comes out at 68.047px against the
 design's declared 68px, and the regenerated path lays exactly over the export.
 Run it before trusting the tool on new copy.
 
-**A shorter line is not a narrower line.** `.count__note` is sized by the ratio
-of its natural ink to the 760px line the layout was built around
-(`width: 70.4%`), so the glyphs stay the size the design set at every container
-width. `width: 100%` would stretch a shorter line up to fill the box and set it
-far too large.
+**Sizing a re-worded line.** `.count__note` is set to `width: 100%` so it spans
+the box and lines up with the bar above it. Note what that costs: the line is
+scaled to fit the width, so shorter copy is set *larger* — the current line
+runs ~1.4× past the 68px the design specified. That's deliberate here, but it
+also means `.count__num` can't keep the design's fixed 192px height or the text
+spills out, hence `height: auto` on it. If you'd rather hold the type at the
+design size instead, size the note by the ratio of its natural ink to the 760px
+line the layout was built around (`width: 70.4%` for the current copy).
 
 `assets/svg/_raw/` holds the untouched Figma exports (with their ancestor
 decoration) in case a string needs to be re-generated — not referenced by the
