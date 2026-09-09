@@ -143,6 +143,28 @@ copy set in it is shipped as an outlined SVG**, never live text:
 (`democ.svg` and `hayadata.svg` are leftovers from the previous revision —
 the counter's label and the "הידעת?" tag — and are no longer referenced.)
 
+### Changing Mandatory-set copy
+
+`tools/build-text.py` renders a line of Hebrew straight from the licensed
+desktop font to an outlined SVG, so reworded copy doesn't need a round-trip
+through Figma:
+
+```bash
+python3 tools/build-text.py --verify                       # check the pipeline
+python3 tools/build-text.py --size 68 --text "..." --out assets/svg/foo.svg
+```
+
+`--verify` re-renders a string whose Figma export is already in the repo and
+compares the ink box — the fitted size comes out at 68.047px against the
+design's declared 68px, and the regenerated path lays exactly over the export.
+Run it before trusting the tool on new copy.
+
+**A shorter line is not a narrower line.** `.count__note` is sized by the ratio
+of its natural ink to the 760px line the layout was built around
+(`width: 70.4%`), so the glyphs stay the size the design set at every container
+width. `width: 100%` would stretch a shorter line up to fill the box and set it
+far too large.
+
 `assets/svg/_raw/` holds the untouched Figma exports (with their ancestor
 decoration) in case a string needs to be re-generated — not referenced by the
 page.
@@ -232,7 +254,11 @@ actually paints — so `padding × 2 + image` always overshoots. Every sheared b
 un-sheared width/height from Figma, with the SVG at its natural size centred
 inside it. That reproduces Figma's padding exactly and to within a couple of px.
 
-**The three red CTAs share one style.** `להרשמה`, `בואו להשפיע` and `שליחה` all
+**The hero CTA is deliberately bigger.** It's the page's primary action, so
+`.hero-btn` runs ~28% larger than the shared size (50px label, 18/28 padding).
+The other two reds stay matched to each other.
+
+**The other red CTAs share one style.** `להרשמה`, `בואו להשפיע` and `שליחה` all
 use `.btn.btn--red`: red fill, `4px 4px 0 white` hard shadow, `14px 22px`
 padding, `«` chevron, and a label SVG at a fixed 39px cap height. Only width
 varies with the label length. The Figma source has them slightly inconsistent

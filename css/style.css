@@ -145,6 +145,13 @@ a{ color:inherit; }
   display:flex; flex-direction:column; align-items:flex-end; gap:24px;
   direction:ltr; z-index:2;
 }
+/* The hero CTA is the page's primary action, so it deliberately breaks the
+   "all three reds match" rule and runs ~28% larger. The other two stay matched
+   to each other. */
+.hero-btn{ padding:18px 28px; min-width:230px; gap:11px; }
+.hero-btn .btn__chev{ width:43.7px; height:33.7px; }
+.hero-btn .btn__label{ height:50px; }
+
 .hero-cta__stack{ display:flex; flex-direction:column; align-items:flex-end; width:541px; }
 .hero-title{ width:541px; height:204px; margin-bottom:-1px; }
 .hero-title img{ width:540px; height:163px; }
@@ -335,7 +342,12 @@ a{ color:inherit; }
   font:700 64px/0.8 'Heebo', sans-serif; color:var(--white);  /* no-JS fallback */
 }
 .bar__pct svg{ display:block; overflow:visible; }
-.count__note{ width:100%; height:auto; }
+/* Width is the ratio of this line's natural ink (534.95) to the line the
+   layout was built around (760), so the GLYPHS come out the same size they did
+   before the copy changed — at any container width. A plain width:100% would
+   stretch the shorter line up to fill the box and set it far too large.
+   Regenerate the SVG with tools/build-text.py and update this ratio. */
+.count__note{ width:70.4%; height:auto; }
 
 /* ---------- form ---------- */
 .form{
@@ -516,7 +528,12 @@ a{ color:inherit; }
   .hero-title img{ width:100%; height:auto; }
   .hero-sub{ width:87%; padding:10px 14px; }
   .hero-sub img{ width:100%; height:auto; }
-  .hero-btn{ align-self:flex-end; transform:none; }
+  .hero-btn{
+    align-self:flex-end; transform:none;
+    padding:15px 23px; gap:9px;
+  }
+  .hero-btn .btn__chev{ width:33px; }
+  .hero-btn .btn__label{ height:38px; }
 
   /* buttons: trimmed so the longest label ("בואו להשפיע") clears the page
      edges inside the shrunk columns */
