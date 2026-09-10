@@ -385,7 +385,7 @@
       btn.innerHTML =
         '<span class="cluster__name">' + escapeHtml(c.name) + '</span>' +
         '<span class="cluster__meta">' + escapeHtml(c.address) +
-          (c.cityName && c.cityName !== S.city ? ' · ' + escapeHtml(c.cityName) : '') + '</span>' +
+          (c.cityName ? ' · ' + escapeHtml(c.cityName) : '') + '</span>' +
         (dist ? '<span class="cluster__dist">' + dist + '</span>' : '');
       btn.addEventListener('click', function () { chooseCluster(i); });
       li.appendChild(btn);
