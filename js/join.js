@@ -324,12 +324,27 @@
 
   /* ------------------------------------------------ step: address */
 
+  // The campaign's shift codes: 13 morning, 23 noon, 33 evening. "מתי שצריך"
+  // is a UI convenience for all three, so it expands rather than travelling as
+  // a value of its own.
+  var SHIFT_ALL = [13, 23, 33];
+
+  function pickShifts(nodes) {
+    var out = [];
+    Array.prototype.forEach.call(nodes, function (c) {
+      if (!c.checked) return;
+      (c.value === 'any' ? SHIFT_ALL : [Number(c.value)]).forEach(function (n) {
+        if (out.indexOf(n) === -1) out.push(n);
+      });
+    });
+    return out.sort(function (a, b) { return a - b; });
+  }
+
   function submitAddress() {
     var f = form.elements;
     S.street = f.street.value.trim();
     S.houseNumber = f.houseNumber.value.trim();
-    S.shifts = Array.prototype.filter.call(f.shifts, function (c) { return c.checked; })
-      .map(function (c) { return c.value; });
+    S.shifts = pickShifts(f.shifts);
 
     var bad = null;
     markInvalid(f.street, !S.street); if (!S.street) bad = bad || f.street;
@@ -467,7 +482,7 @@
   }
 
   function shiftLabel(v) {
-    return { morning: 'בוקר', noon: 'צהריים', evening: 'ערב', any: 'מתי שצריך' }[v] || v;
+    return { 13: 'בוקר', 23: 'צהריים', 33: 'ערב' }[v] || v;
   }
 
   /* ------------------------------------------------ boot */
