@@ -25,10 +25,14 @@ from fontTools.misc.transform import Transform
 
 SRC = os.path.expanduser("~/Library/Fonts/MandatoryVariable.ttf")
 C, D = 0.156434, 0.987688       # the brand shear, exactly as Figma bakes it
-WGHT, WDTH = 900, 76            # "Black Condensed 29" — see tools/build-digits.py
+# Two instances are in use in this design, both fitted against real Figma
+# exports rather than taken from the fvar named instances:
+#   wdth 76 — the counter/body copy ("Black Condensed 29")
+#   wdth 90 — the red buttons' labels  (fitted so "להרשמה" == 188x39)
+WGHT, WDTH = 900, 76
 
 # a string already exported from Figma, used to prove the pipeline still matches
-REF_TEXT = "מהמתנדבות והמתנדבים הנדרשים"
+REF_TEXT = "מכוח ההתנדבות הנדרש"   # must match whatever REF_SVG currently holds
 REF_SVG  = "assets/svg/nidrashim.svg"
 
 
@@ -151,9 +155,27 @@ if __name__ == "__main__":
     ap.add_argument("--out")
     ap.add_argument("--fill", default="#EF1A22")
     ap.add_argument("--size", type=float)
+    ap.add_argument("--wdth", type=float, help="width axis; 76 body, 90 button labels")
+    ap.add_argument("--wght", type=float)
     a = ap.parse_args()
 
+    if a.wdth: WDTH = a.wdth
+    if a.wght: WGHT = a.wght
+
     here = os.path.join(os.path.dirname(__file__), "..")
+
+    # The self-check only means anything on the instance the reference was
+    # exported at (wdth 76). Asking for another width axis skips it.
+    if a.wdth and a.wdth != 76:
+        if not (a.text and a.out and a.size):
+            sys.exit("--wdth needs --text, --out and an explicit --size "
+                     "(the built-in reference is wdth 76 only)")
+        svg, w, h = render(a.text, a.size, a.fill)
+        open(os.path.join(here, a.out), "w", encoding="utf-8").write(svg)
+        print("wrote %s  (%.2f x %.2f at %.3fpx, wght %g / wdth %g)"
+              % (a.out, w, h, a.size, WGHT, WDTH))
+        sys.exit(0)
+
     ref = open(os.path.join(here, REF_SVG), encoding="utf-8").read()
     rw, rh = (float(v) for v in re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', ref).groups())
 

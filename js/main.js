@@ -3,7 +3,7 @@
    - infinite marquee strip
    - render the sign-up counter as live text from Mandatory glyph outlines
    - light parallax + reveal in the mid section
-   - display-only form (no network)                                   */
+   - consent checkbox (the form itself is js/join.js)                                   */
 (function () {
   'use strict';
   var DESIGN_W = 1440;
@@ -287,13 +287,5 @@
     });
   }
 
-  /* -------------------------------------------------- form (display only) */
-  var form = document.getElementById('join');
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var done = form.querySelector('.form__done');
-      if (done) done.hidden = false;
-    });
-  }
+  /* the registration form itself lives in js/join.js */
 })();

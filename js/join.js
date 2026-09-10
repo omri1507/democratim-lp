@@ -18,7 +18,9 @@
 (function () {
   'use strict';
 
-  var form = document.getElementById('flow');
+  // join.html calls it #flow; on the landing page it doubles as the #join
+  // anchor the CTA buttons point at.
+  var form = document.getElementById('flow') || document.getElementById('join');
   var steps = {};
   form.querySelectorAll('.step').forEach(function (el) { steps[el.dataset.step] = el; });
 
@@ -53,7 +55,18 @@
     progressFill.style.setProperty('--p', (pos / 5 * 100) + '%');
     var h = steps[name].querySelector('h1');
     if (h) { try { h.focus(); } catch (e) {} }
-    if (!reduce) window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToFlow();
+  }
+
+  // join.html is the whole page, so the top is the right place. On the landing
+  // page the flow is one section of a long scroll — go to the section instead.
+  // Either way, never scroll on the first render: the user hasn't asked yet.
+  var booted = false;
+  var anchor = document.querySelector('[data-flow-scroll]');
+  function scrollToFlow() {
+    if (!booted) { booted = true; return; }
+    if (anchor) anchor.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    else if (!reduce) window.scrollTo({ top: 0, behavior: 'smooth' });
     else window.scrollTo(0, 0);
   }
 
@@ -226,6 +239,13 @@
 
     if (bad) { showError('בדקו את השדות המסומנים.'); bad.focus(); return; }
 
+    var consent = form.querySelector('.checkbox[aria-checked]');
+    if (consent && consent.getAttribute('aria-checked') !== 'true') {
+      showError('יש לאשר את תנאי השימוש ומדיניות הפרטיות.');
+      consent.focus();
+      return;
+    }
+
     busy(true);
     Webhooks.sendOtp(S.phone).then(function (res) {
       busy(false);
@@ -258,7 +278,7 @@
   });
 
   function flash(msg) {
-    var n = form.querySelector('[data-act="resend"]').closest('.row');
+    var n = form.querySelector('[data-act="resend"]').closest('.row, .step__row');
     var s = document.createElement('span');
     s.className = 'field__hint';
     s.textContent = msg;

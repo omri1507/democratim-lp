@@ -126,50 +126,147 @@
         </div>
       </div>
 
-      <!-- form -->
-      <form id="join" class="form reveal" novalidate>
+      <!-- ===================== registration flow =====================
+           Multi-step, driven by js/join.js (shared with join.html — same
+           markup hooks, different skin). The old single-screen form is now
+           step 1 of it. -->
+      <form id="join" class="form reveal" data-flow-scroll novalidate>
         <div class="box box--lightblue form__head skew">
           <img src="assets/svg/hitstarfu.svg" alt="הצטרפו עכשיו:">
         </div>
 
-        <div class="form__row">
-          <label class="field skew">
-            <span class="field__label">שם פרטי</span>
-            <input type="text" name="first" autocomplete="given-name">
-          </label>
-          <label class="field skew">
-            <span class="field__label">שם משפחה</span>
-            <input type="text" name="last" autocomplete="family-name">
-          </label>
-          <label class="field skew">
-            <span class="field__label">טלפון</span>
-            <input type="tel" name="phone" autocomplete="tel">
-          </label>
+        <div class="progress">
+          <span class="progress__label" aria-live="polite">שלב 1 מתוך 5</span>
+          <span class="progress__track"><span class="progress__fill" style="--p:20%"></span></span>
         </div>
 
-        <div class="form__row form__row--2">
-          <label class="field skew">
-            <span class="field__label">אימייל</span>
-            <input type="email" name="email" autocomplete="email">
-          </label>
-          <label class="field skew">
-            <span class="field__label">עיר מגורים</span>
-            <input type="text" name="city" autocomplete="address-level2">
-          </label>
-        </div>
+        <!-- ---------- 1 · פרטים ---------- -->
+        <section class="step" data-step="details">
+          <div class="form__row">
+            <label class="field skew">
+              <span class="field__label">שם פרטי</span>
+              <input type="text" name="firstName" autocomplete="given-name">
+            </label>
+            <label class="field skew">
+              <span class="field__label">שם משפחה</span>
+              <input type="text" name="lastName" autocomplete="family-name">
+            </label>
+            <label class="field skew">
+              <span class="field__label">טלפון</span>
+              <input type="tel" name="phone" inputmode="numeric" autocomplete="tel">
+            </label>
+          </div>
 
-        <div class="form__consent skew">
-          <span class="checkbox" role="checkbox" aria-checked="false" tabindex="0"></span>
-          <span class="form__consent-text">אני מאשר/ת את
-            <a href="https://democrats.org.il/privacy-policy/" target="_blank" rel="noopener">תנאי השימוש ומדיניות הפרטיות</a><b>*</b>
-          </span>
-        </div>
+          <div class="form__row form__row--2">
+            <label class="field skew">
+              <span class="field__label">אימייל</span>
+              <input type="email" name="email" autocomplete="email">
+            </label>
+            <div class="field combo skew" data-combo="city">
+              <label class="field__label" for="city-input">עיר מגורים</label>
+              <input type="text" id="city-input" name="city" role="combobox"
+                     autocomplete="off" aria-expanded="false" aria-controls="city-list"
+                     aria-autocomplete="list">
+              <ul id="city-list" class="combo__list" role="listbox" hidden></ul>
+            </div>
+          </div>
 
-        <button type="submit" class="btn btn--red form__submit skew">
-          <img class="btn__chev" src="assets/svg/chevron.svg" alt="">
-          <img class="btn__label" src="assets/svg/shlicha.svg" alt="שליחה">
-        </button>
-        <p class="form__done" hidden>תודה! פרטיך נקלטו.</p>
+          <div class="form__consent skew">
+            <span class="checkbox" role="checkbox" aria-checked="false" tabindex="0"></span>
+            <span class="form__consent-text">אני מאשר/ת את
+              <a href="https://democrats.org.il/privacy-policy/" target="_blank" rel="noopener">תנאי השימוש ומדיניות הפרטיות</a><b>*</b>
+            </span>
+          </div>
+
+          <button type="submit" class="btn btn--red form__submit skew">
+            <img class="btn__chev" src="assets/svg/chevron.svg" alt="">
+            <img class="btn__label" src="assets/svg/btn-continue.svg" alt="המשך">
+          </button>
+        </section>
+
+        <!-- ---------- 2 · אימות ---------- -->
+        <section class="step" data-step="otp" hidden>
+          <p class="step__lede">שלחנו קוד בן 6 ספרות ל־<b data-echo="phone"></b></p>
+
+          <label class="field field--otp skew">
+            <span class="field__label">קוד אימות</span>
+            <input type="text" name="otp" inputmode="numeric" autocomplete="one-time-code"
+                   maxlength="6" class="otp-input">
+          </label>
+
+          <div class="step__row">
+            <button type="button" class="linkbtn" data-act="resend">שליחה חוזרת</button>
+            <button type="button" class="linkbtn" data-act="back-details">שינוי מספר</button>
+          </div>
+
+          <button type="submit" class="btn btn--red form__submit skew">
+            <img class="btn__chev" src="assets/svg/chevron.svg" alt="">
+            <img class="btn__label" src="assets/svg/btn-verify.svg" alt="אימות">
+          </button>
+        </section>
+
+        <!-- ---------- 3 · כתובת ומשמרות ---------- -->
+        <section class="step" data-step="address" hidden>
+          <p class="step__lede">כדי למצוא את הקלפיות הקרובות אליכם</p>
+
+          <div class="form__row form__row--2">
+            <div class="field combo skew" data-combo="street">
+              <label class="field__label" for="street-input">רחוב</label>
+              <input type="text" id="street-input" name="street" role="combobox"
+                     autocomplete="off" aria-expanded="false" aria-controls="street-list"
+                     aria-autocomplete="list">
+              <ul id="street-list" class="combo__list" role="listbox" hidden></ul>
+              <span class="field__hint" data-street-hint></span>
+            </div>
+            <label class="field field--house skew">
+              <span class="field__label">מספר בית</span>
+              <input type="text" name="houseNumber" inputmode="numeric">
+            </label>
+          </div>
+
+          <fieldset class="shifts">
+            <legend class="field__label">מתי תוכלו להתנדב?</legend>
+            <div class="shifts__opts">
+              <label class="shift skew"><input type="checkbox" name="shifts" value="morning"><span>בוקר</span></label>
+              <label class="shift skew"><input type="checkbox" name="shifts" value="noon"><span>צהריים</span></label>
+              <label class="shift skew"><input type="checkbox" name="shifts" value="evening"><span>ערב</span></label>
+              <label class="shift skew"><input type="checkbox" name="shifts" value="any"><span>מתי שצריך</span></label>
+            </div>
+          </fieldset>
+
+          <button type="submit" class="btn btn--red form__submit skew">
+            <img class="btn__chev" src="assets/svg/chevron.svg" alt="">
+            <img class="btn__label" src="assets/svg/btn-continue.svg" alt="המשך">
+          </button>
+        </section>
+
+        <!-- ---------- 4 · בחירת קלפי ---------- -->
+        <section class="step" data-step="clusters" hidden>
+          <p class="step__lede">בחרו קלפי, או שנשבץ אתכם היכן שנדרש</p>
+          <ul class="clusters" role="list"></ul>
+          <p class="clusters__empty" hidden>לא נמצאו קלפיות קרובות — נשבץ אתכם היכן שנדרש.</p>
+          <button type="button" class="btn btn--line skew" data-act="anywhere">שבצו אותי היכן שצריך</button>
+        </section>
+
+        <!-- ---------- 5 · מנהל אשכול ---------- -->
+        <section class="step" data-step="manage" hidden>
+          <p class="step__title">לאשכול הזה עדיין אין מנהל/ת</p>
+          <p class="step__lede" data-echo="clusterName"></p>
+          <p class="step__body">תרצו להוביל אותו? זה אומר לתאם בין המתנדבים ולהיות אנשי הקשר של האזור.</p>
+          <div class="step__row step__row--2">
+            <button type="button" class="btn btn--line skew" data-act="manage-yes">כן, אשמח להוביל</button>
+            <button type="button" class="btn btn--line skew" data-act="manage-no">לא, רק להתנדב</button>
+          </div>
+        </section>
+
+        <!-- ---------- סיום ---------- -->
+        <section class="step step--done" data-step="done" hidden>
+          <p class="step__title">תודה רבה!</p>
+          <p class="step__lede" data-done-msg></p>
+          <div data-done-extra hidden></div>
+        </section>
+
+        <p class="flow-error" role="alert" hidden></p>
       </form>
 
       <img class="navy-logo" src="assets/svg/logo.svg" alt="הדמוקרטים בראשות יאיר גולן">
@@ -204,7 +301,12 @@
   </section>
 
 </div>
+
+<div class="loading" hidden aria-hidden="true"><span class="spinner"></span></div>
+
 <script src="assets/js/mandatory-digits.js"></script>
+<script src="js/webhooks.js"></script>
 <script src="js/main.js"></script>
+<script src="js/join.js"></script>
 </body>
 </html>
