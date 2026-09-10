@@ -24,7 +24,9 @@
     otp:      'https://n8n.democil.com/webhook/a74dbf18-1be8-4342-abe9-26e6a350f1f9',
     status:   'https://n8n.democil.com/webhook/002e72d1-e5ec-455c-8991-388bf983b6f2',
     clusters: 'https://n8n.democil.com/webhook/825850e6-fe6b-42e2-b1fb-72a26ed15ef6aa',
-    submit:   'https://n8n.democil.com/webhook/17cfa695-8410-487d-9cbb-35215bf3fc6e'
+    // note the 'ere' tail, exactly as the spec sheet has it — the path
+    // without it is a *different* live workflow that also answers 200
+    submit:   'https://n8n.democil.com/webhook/17cfa695-8410-487d-9cbb-35215bf3fc6eere'
   };
 
   var TIMEOUT = 20000;
