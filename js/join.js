@@ -11,8 +11,9 @@
                     wants to manage    -> done(no_manager_wants_to_manage)
                     declines           -> done(no_manager_declines)
 
-   Two beta stubs live in js/webhooks.js: OTP verification is not enforced, and
-   the manager / WhatsApp branch is inert until webhook 4 returns those fields. */
+   The OTP code is generated in the browser, delivered by webhook 1 (SMS only),
+   and checked locally — see js/webhooks.js. The manager / WhatsApp branch is
+   inert until webhook 4 returns hasManager / manager / whatsappUrl. */
 
 (function () {
   'use strict';
@@ -34,7 +35,7 @@
   var S = {
     firstName: '', lastName: '', phone: '', email: '',
     city: '', cityStreetId: 0,
-    otp: '',
+    otp: '', otpCode: '', otpTries: 0,
     isMember: false,
     street: '', houseNumber: '', shifts: [],
     clusters: [], chosen: null,
@@ -229,6 +230,8 @@
     Webhooks.sendOtp(S.phone).then(function (res) {
       busy(false);
       if (!res.ok) { showError('שליחת ה־SMS נכשלה. נסו שוב.'); return; }
+      S.otpCode = res.code;
+      S.otpTries = 0;
       echo('phone', formatPhone(S.phone));
       form.elements.otp.value = '';
       show('otp');
@@ -243,9 +246,10 @@
 
   form.querySelector('[data-act="resend"]').addEventListener('click', function () {
     busy(true);
-    Webhooks.sendOtp(S.phone).then(function () {
+    Webhooks.sendOtp(S.phone).then(function (res) {
       busy(false);
-      flash('הקוד נשלח שוב.');
+      if (res.ok) { S.otpCode = res.code; S.otpTries = 0; }
+      flash(res.ok ? 'הקוד נשלח שוב.' : 'השליחה נכשלה, נסו שוב.');
     });
   });
   form.querySelector('[data-act="back-details"]').addEventListener('click', function () {
@@ -264,32 +268,37 @@
 
   function submitOtp() {
     S.otp = form.elements.otp.value.trim();
+
     if (!/^\d{6}$/.test(S.otp)) {
       markInvalid(form.elements.otp, true);
       showError('הקוד הוא 6 ספרות.');
       return;
     }
+    if (!Webhooks.verifyOtp(S.otpCode, S.otp).ok) {
+      S.otpTries++;
+      markInvalid(form.elements.otp, true);
+      showError(S.otpTries >= 5
+        ? 'יותר מדי ניסיונות. בקשו קוד חדש בכפתור "שליחה חוזרת".'
+        : 'הקוד שגוי. בדקו את ה־SMS ונסו שוב.');
+      return;
+    }
+
     markInvalid(form.elements.otp, false);
     busy(true);
 
-    Webhooks.verifyOtp(S.phone, S.otp).then(function (v) {
-      if (!v.ok) { busy(false); showError('קוד לא תקין.'); return; }
-      return Webhooks.checkStatus(S.phone).then(function (st) {
-        busy(false);
-        if (!st.ok) { showError('בדיקת הסטטוס נכשלה. נסו שוב.'); return; }
-        S.isMember = st.isMember;
+    Webhooks.checkStatus(S.phone).then(function (st) {
+      busy(false);
+      if (!st.ok) { showError('בדיקת הסטטוס נכשלה. נסו שוב.'); return; }
+      S.isMember = st.isMember;
 
-        if (!S.isMember) {
-          finish('not_member');
-          return;
-        }
-        // prefill address from the record where we can
-        if (st.person) {
-          if (st.person.street) { form.elements.street.value = st.person.street; S.street = st.person.street; }
-          if (st.person.houseNumber) { form.elements.houseNumber.value = st.person.houseNumber; S.houseNumber = st.person.houseNumber; }
-        }
-        show('address');
-      });
+      if (!S.isMember) { finish('not_member'); return; }
+
+      // prefill address from the record where we can
+      if (st.person) {
+        if (st.person.street) { form.elements.street.value = st.person.street; S.street = st.person.street; }
+        if (st.person.houseNumber) { form.elements.houseNumber.value = st.person.houseNumber; S.houseNumber = st.person.houseNumber; }
+      }
+      show('address');
     });
   }
 
@@ -402,7 +411,8 @@
       },
       isMember: S.isMember,
       shifts: S.shifts,
-      otpCollected: S.otp || null,       // beta: forwarded, not verified server-side
+      otp: S.otp || null,
+      otpVerified: !!S.otpCode && S.otp === S.otpCode,
       eshkolId: S.chosen ? S.chosen.id : null,
       eshkolName: S.chosen ? S.chosen.name : null
     };

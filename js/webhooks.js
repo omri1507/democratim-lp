@@ -2,10 +2,14 @@
    Kept separate from the flow controller so the endpoints and the two beta
    stubs are easy to find and swap once the n8n side is finished.
 
+   OTP by design: the FRONTEND generates the 6-digit code, posts
+     {phone, code} to webhook 1 which only SMSes it, and keeps the code for the
+     session. The typed code is checked against it locally (join.js). Webhook 1
+     is a delivery pipe — its "Workflow was started" reply is expected and
+     unused.  (Trade-off: a user with devtools can read the code and skip the
+     SMS. Accepted as phone-ownership friction for a volunteer form.)
+
    Status as tested 2026-09-10:
-     otp       — reachable, but replies "Workflow was started" and never a
-                 verify result → verifyOtp() is STUBBED (accepts any 6 digits,
-                 still posts the code so the server/a human can check later).
      status    — WORKS. returns an array of fuzzy voter matches.
      clusters  — WORKS via the ...ef6aa url (the ...ef6 one is a dead stub).
                  reply is double-wrapped: the real payload is a JSON *string*
@@ -46,22 +50,23 @@
     });
   }
 
-  /* ---- OTP ------------------------------------------------------------- */
+  /* ---- OTP -----------------------------------------------------------------
+     Generate here, deliver via webhook 1, hand the code back to the caller to
+     hold and check against. verifyOtp is a plain local compare — no round-trip. */
+
+  function newCode() {
+    return String(Math.floor(100000 + Math.random() * 900000));  // always 6 digits
+  }
 
   function sendOtp(phone) {
-    // We can't learn anything from the reply; a 200 is all we get.
-    return post(EP.otp, { action: 'send', phone: phone }).then(function (res) {
-      return { ok: res.ok };
+    var code = newCode();
+    return post(EP.otp, { phone: phone, code: code }).then(function (res) {
+      return { ok: res.ok, code: code };
     });
   }
 
-  // STUB. The endpoint can't tell us whether the code is right, so we accept
-  // any 6-digit code and still forward it for later reconciliation.
-  function verifyOtp(phone, code) {
-    var valid = /^\d{6}$/.test(String(code || ''));
-    return post(EP.otp, { action: 'verify', phone: phone, code: code }).then(function () {
-      return { ok: valid, stubbed: true };
-    });
+  function verifyOtp(expected, entered) {
+    return { ok: /^\d{6}$/.test(String(entered || '')) && String(entered) === String(expected) };
   }
 
   /* ---- volunteer / party-member status ------------------------------- */
